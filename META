@@ -1,0 +1,12 @@
+# OASIS_START
+# DO NOT EDIT (digest: e245113519f6d5ff40b45ad7264d8768)
+version = "0.1"
+description = "BAP Lifters"
+requires = "bap-types llvm-mc"
+archive(byte) = "bap-lifter.cma"
+archive(byte, plugin) = "bap-lifter.cma"
+archive(native) = "bap-lifter.cmxa"
+archive(native, plugin) = "bap-lifter.cmxs"
+exists_if = "bap-lifter.cma"
+# OASIS_STOP
+

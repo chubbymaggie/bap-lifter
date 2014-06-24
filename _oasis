@@ -1,0 +1,13 @@
+OASISFormat: 0.4
+Name:        bap-lifter
+Version:     0.1
+Synopsis:    BAP Lifters
+Authors:     Matthew Maurer
+License:     BSD-3-clause
+Plugins:     META (0.4), DevFiles (0.4)
+
+Library "bap-lifter"
+  Path:         .
+  BuildTools:   ocamlbuild
+  Modules:      Disasm_i386, Disasm_ARM
+  BuildDepends: bap-types, llvm-mc
