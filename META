@@ -1,8 +1,8 @@
 # OASIS_START
-# DO NOT EDIT (digest: e245113519f6d5ff40b45ad7264d8768)
+# DO NOT EDIT (digest: b724ee3b261cd91a9b327a6bc6f85a15)
 version = "0.1"
 description = "BAP Lifters"
-requires = "bap-types llvm-mc"
+requires = "bap-types core_kernel llvm-mc"
 archive(byte) = "bap-lifter.cma"
 archive(byte, plugin) = "bap-lifter.cma"
 archive(native) = "bap-lifter.cmxa"

@@ -1,0 +1,9 @@
+B ./_build
+FLG -strict-sequence
+PKG bap-types
+PKG core_kernel
+PKG llvm-mc
+PKG zarith
+REC
+S .
+S ./_build

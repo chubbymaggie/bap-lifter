@@ -1,3 +1,4 @@
+BUILDFLAGS=-cflags -principal,-strict-sequence,-warn-error,+a,-w,+a-4-44
 OCB=ocamlbuild
 OCBF=
 OCF=ocamlfind
@@ -56,7 +57,7 @@ mc/%/opcode.ml:
 
 mc/%/_tags:
 	echo 'not <$*.cmx> : for-pack(Mc.$*)' > $@
-	echo '<$.cmx> : for-pack(Mc)
+	echo '<$.cmx> : for-pack(Mc)' >> $@
 
 mc/%/%.mlpack:
 	echo -e 'Cond\nEnum\nOpcode\nReg' > $@

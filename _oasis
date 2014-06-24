@@ -9,5 +9,5 @@ Plugins:     META (0.4), DevFiles (0.4)
 Library "bap-lifter"
   Path:         .
   BuildTools:   ocamlbuild
-  Modules:      Disasm_i386, Disasm_ARM
-  BuildDepends: bap-types, llvm-mc
+  Modules:      Disasm_ARM
+  BuildDepends: bap-types, core_kernel, llvm-mc
