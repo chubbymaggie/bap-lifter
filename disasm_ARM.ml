@@ -138,7 +138,7 @@ module R = struct
   let r15 = pc
 
   (* Floating point registers *)
-  let fpexec     = new_var "FPEXC"      (Reg 32)
+  let fpexc      = new_var "FPEXC"      (Reg 32)
   let fpinst     = new_var "FPINST"     (Reg 32)
   let fpinst2    = new_var "FPINST2"    (Reg 32)
   let fpscr      = new_var "FPSCR"      (Reg 32)
@@ -198,6 +198,9 @@ module R = struct
   let q15 = new_var "Q15" (Reg 128)
 
   (* 32-bit floating point registers *)
+  (* Because these are floating point registers,
+   * we cannot define them properly. *)
+  (*
   let s0  = new_var "S0"  (Reg 32)
   let s1  = new_var "S1"  (Reg 32)
   let s2  = new_var "S2"  (Reg 32)
@@ -230,18 +233,26 @@ module R = struct
   let s29 = new_var "S29" (Reg 32)
   let s30 = new_var "S30" (Reg 32)
   let s31 = new_var "S31" (Reg 32)
+  *)
 
   (* Feature registers *)
   let mvfr0 = new_var "MVFR0" (Reg 32)
   let mvfr1 = new_var "MVFR1" (Reg 32)
   let mvfr2 = new_var "MVFR2" (Reg 32)
 
-  (* TODO: decide its purpose before exposing; justify its content *)
-  (* let regs = [ *)
-  (*   r0; r1; r2; r3; r4; r5; r6; r7; *)
-  (*   r8; r9; r10; r11; r12; sp; lr; pc; *)
-  (*   nf; zf; cf; vf; qf; ge; *)
-  (* ] *)
+  let regs = [
+    r0; r1; r2; r3; r4; r5; r6; r7;
+    r8; r9; r10; r11; r12; sp; lr; pc;
+    nf; zf; cf; vf; qf; ge;
+    spsr; itstate; fpexc; fpinst; fpinst2; fpscr; fpscr_nzcv; fpsid;
+    d0; d1; d2; d3; d4; d5; d6; d7;
+    d8; d9; d10; d11; d12; d13; d14; d15;
+    d16; d17; d18; d19; d20; d21; d22; d23;
+    d24; d25; d26; d27; d28; d29; d30; d31;
+    q0; q1; q2; q3; q4; q5; q6; q7;
+    q8; q9; q10; q11; q12; q13; q14; q15;
+    mvfr0; mvfr1; mvfr2;
+  ]
 
   let of_mcreg = function
     | McR0  -> r0

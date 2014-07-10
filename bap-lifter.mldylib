@@ -1,5 +1,7 @@
 # OASIS_START
-# DO NOT EDIT (digest: 22bc07fe296e1870e2e88bdb262ad43f)
+# DO NOT EDIT (digest: 647129b752a3758df4b5c36153af0a94)
 Disasm_ARM
 Disasm_i386
+Arch_arm
+Arch_i386
 # OASIS_STOP
