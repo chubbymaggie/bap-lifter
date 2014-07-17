@@ -1,0 +1,6 @@
+[submodule "bap-types"]
+	path = bap-types
+	url = ../bap-types
+[submodule "llvm-mc"]
+	path = llvm-mc
+	url = ../llvm-mc

@@ -70,11 +70,21 @@ llvm-gen: $(LLVM_GENERATED)
 llvm-clean:
 	rm $(LLVM_GENERATED)
 
+SANDBOX_DEPS=bap-types llvm-mc
+SANDBOX_FILTER=$(foreach dir,$(SANDBOX_DEPS),-path ./$(dir) -prune -o)
+
 .PHONY: check
 check: ocp-indent-check
 ocp-indent-check:
-	find . -name "*.ml" -print0 | xargs -n 1 -0 -Imlfile bash -c "$(OCI) mlfile | diff - mlfile"
+	find . $(SANDBOX_FILTER) -name "*.ml" -print0 | xargs -n 1 -0 -Imlfile bash -c "$(OCI) mlfile | diff - mlfile"
 
 .PHONY: ocp-indent-auto
 ocp-indent-auto:
-	find . -name "*.ml" -print0 | xargs -n 1 -0 -Imlfile $(OCI) -i mlfile
+	find . $(SANDBOX_FILTER) -name "*.ml" -print0 | xargs -n 1 -0 -Imlfile $(OCI) -i mlfile
+
+SANDBOX_DEPS=bap-types llvm-mc
+.PHONY: sandbox-deps
+sandbox-deps:
+	for pack in $(SANDBOX_DEPS); do make -C $$pack configure; make -C $$pack; make -C $$pack install; done
+sandbox-destroy:
+	rm -rf $(OCAMLSANDBOX)
