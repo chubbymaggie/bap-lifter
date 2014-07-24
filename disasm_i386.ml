@@ -1064,7 +1064,11 @@ module ToIR = struct
 
   (* Helper functions to set flags for adding *)
   let set_aopszf_add t s1 s2 r =
-    Move (oF, Bop.(Cast (CAST_HIGH, r1, (s1 = s2) land (s1 lxor r))))
+    (* Move (oF, Bop.(Cast (CAST_HIGH, r1, (s1 = s2) land (s1 lxor r)))) *)
+    let s1_high = Cast (CAST_HIGH, r1, s1) in
+    let s2_high = Cast (CAST_HIGH, r1, s2) in
+    let r_high  = Cast (CAST_HIGH, r1, r) in
+    Move (oF, Bop.((s1_high = s2_high) land (s1_high lxor r_high)))
     ::set_apszf t s1 s2 r
 
   let set_flags_add t s1 s2 r =
@@ -1681,7 +1685,7 @@ module ToIR = struct
         (* undefined for SHL and SHR instructions where the count is greater than
            or equal to the size (in bits) of the destination operand *)
         match st with
-        | LSHIFT -> Cast (CAST_LOW, r1, Bop.(Var origDEST lsl (size - Var origCOUNT)))
+        | LSHIFT -> Cast (CAST_LOW, r1, Bop.(Var origDEST lsr (size - Var origCOUNT)))
         | RSHIFT | ARSHIFT ->
           Cast (CAST_HIGH, r1, Bop.(Var origDEST lsl (size - Var origCOUNT)))
         | _ -> failwith "impossible"
@@ -1710,7 +1714,7 @@ module ToIR = struct
         | RSHIFT -> Cast (CAST_HIGH, r1, Bop.(Var origDEST lsl (size - Var origCOUNT)))
         | _ -> disfailwith "impossible" in
       let ifzero t e = Ite (Bop.(Var origCOUNT = it 0 s'), t, e) in
-      let new_of = Cast (CAST_HIGH, r1, Bop.((Var origDEST) lxor (Cast (CAST_HIGH, r1, e_dst)))) in
+      let new_of = Cast (CAST_HIGH, r1, Bop.((Var origDEST) lxor e_dst)) in
       let unk_of =
         Unknown ("OF undefined after shiftd of more then 1 bit", r1) in
       let ret1 = match st with
@@ -2158,7 +2162,7 @@ module ToIR = struct
       let flag =
         let highbit = bits_of_width new_t - 1 in
         let lowbit = bits_of_width new_t / 2 in
-        Bop.(Extract (highbit, lowbit, assne <> it 0 (bits_of_width t)))
+        Bop.((Extract (highbit, lowbit, assne)) <> it 0 (bits_of_width t))
       in
       assnstmts
       @
@@ -2182,7 +2186,7 @@ module ToIR = struct
                 going to check if the upper bits are != 0 *)
              let highbit = bits_of_width new_t - 1 in
              let lowbit = bits_of_width new_t / 2 in
-             Bop.(Extract (highbit, lowbit, assne <> it 0 (bits_of_width t)))
+             Bop.((Extract (highbit, lowbit, assne)) <> it 0 (bits_of_width t))
            in
            assnstmts @
            [Move (oF, flag);

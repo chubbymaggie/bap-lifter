@@ -4,3 +4,9 @@
 [submodule "llvm-mc"]
 	path = llvm-mc
 	url = ../llvm-mc
+[submodule "bap-traces"]
+	path = bap-traces
+	url = ../bap-traces/
+[submodule "traces"]
+	path = traces
+	url = ../traces

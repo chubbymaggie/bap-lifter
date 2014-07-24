@@ -12,3 +12,16 @@ Library "bap-lifter"
   InternalModules: Arch_arm, Arch_i386
   Modules:         Disasm_ARM, Disasm_i386
   BuildDepends:    bap-types, llvm-mc, core_kernel
+  
+Executable "test"
+  Path:           test
+  MainIs:         test.ml
+  Install:        false
+  Build$:         flag(tests)
+  Buildtools:     ocamlbuild
+  BuildDepends:   bap-types, bap-lifter, oUnit, core_kernel, bap-traces
+  CompiledObject: native
+
+Test "main"
+  Type: Custom (0.4)
+  Command: $test

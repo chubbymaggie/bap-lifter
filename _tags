@@ -1,5 +1,5 @@
 # OASIS_START
-# DO NOT EDIT (digest: 0415c9a5e8f16fbfe395d256f62a9215)
+# DO NOT EDIT (digest: c458d341650033006f35a9b177b3da7d)
 # Ignore VCS directories, you can use the same kind of rule outside
 # OASIS_START/STOP if you want to exclude directories that contains
 # useless stuff for the build process
@@ -18,4 +18,17 @@
 <*.ml{,i}>: pkg_bap-types
 <*.ml{,i}>: pkg_core_kernel
 <*.ml{,i}>: pkg_llvm-mc
+# Executable test
+"test/test.native": pkg_bap-traces
+"test/test.native": pkg_bap-types
+"test/test.native": pkg_core_kernel
+"test/test.native": pkg_llvm-mc
+"test/test.native": pkg_oUnit
+"test/test.native": use_bap-lifter
+<test/*.ml{,i}>: pkg_bap-traces
+<test/*.ml{,i}>: pkg_bap-types
+<test/*.ml{,i}>: pkg_core_kernel
+<test/*.ml{,i}>: pkg_llvm-mc
+<test/*.ml{,i}>: pkg_oUnit
+<test/*.ml{,i}>: use_bap-lifter
 # OASIS_STOP
