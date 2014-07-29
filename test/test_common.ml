@@ -190,7 +190,8 @@ module TestArch(LocalArch: Arch.ARCH) = struct
                 operand.Frame_piqi.Operand_info.value
           )
 
-    | _, _ -> Log.warning "Frames are not both `std_frame."
+    | _, _ -> initialize_state ();
+      Log.warning "Frames are not both `std_frame."
 
   (** Step through a trace and evaluate each frame,
       checking for discrepancies. *)

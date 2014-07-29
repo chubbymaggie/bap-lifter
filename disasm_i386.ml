@@ -661,7 +661,7 @@ and lflags_e = List.reduce_exn ~f:Bop.(^) bap_to_lflags
 
 let rflags_to_bap =
   let assn v = Some (v, Util.id) in
-  (List.map ~f:(fun _ -> None) (List.range ~stride:(-1) ~stop:`inclusive 64 32))
+  (List.map ~f:(fun _ -> None) (List.range ~stride:(-1) ~stop:`inclusive 63 32))
   @  None                       (* 31 *)
      :: None                       (* 30 *)
      :: None                       (* 29 *)
