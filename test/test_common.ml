@@ -28,6 +28,12 @@ module TestArch(LocalArch: Arch.ARCH) = struct
     let incr_frame_num () =
       frame_num := !frame_num + 1
 
+    let last_addr = ref (Int64.of_int (-1))
+    let reset_last_addr () =
+      last_addr := Int64.of_int (-1)
+    let set_last_addr n =
+      last_addr := n
+
     let good_data = ref 0
     let all_data = ref 0
     let incr_good () =
@@ -42,11 +48,11 @@ module TestArch(LocalArch: Arch.ARCH) = struct
 
     let warning s =
       if !show_warnings
-      then Printf.printf "Warning (#%d): %s\n" !frame_num s
+      then Printf.printf "Warning (#%d:%s): %s\n" !frame_num (Int64.to_string !last_addr) s
       else ()
 
     let log s =
-      Printf.printf "Log (#%d): %s\n" !frame_num s
+      Printf.printf "Log (#%d:%s): %s\n" !frame_num (Int64.to_string !last_addr) s
   end
 
   (** Given a bitvector, set a register in the global state. *)
@@ -90,7 +96,7 @@ module TestArch(LocalArch: Arch.ARCH) = struct
                           (Bitvector.to_hex trace_value) (Bitvector.to_hex value));
                Log.incr_bad ())
        | Some (Conceval.Un (s, _)) ->
-         Log.log (Printf.sprintf "Value of %s was unknown: %s" name s);
+         Log.warning (Printf.sprintf "Value of %s was unknown: %s" name s);
          (* Log.incr_bad () *)
        | Some (Conceval.Mem _) ->
          raise (Conceval.Abort (name ^ " should be a register, not memory"))
@@ -115,8 +121,8 @@ module TestArch(LocalArch: Arch.ARCH) = struct
                          (Bitvector.to_hex trace_value) (Bitvector.to_hex value));
               Log.incr_bad ())
       | Some (Conceval.Un (s, _)) ->
-        Log.log (Printf.sprintf "Value of %s was unknown: %s"
-                   (Bitvector.to_hex bare_addr) s);
+        Log.warning (Printf.sprintf "Value of %s was unknown: %s"
+                       (Bitvector.to_hex bare_addr) s);
         (* Log.incr_bad () *)
       | Some (Conceval.Mem _) ->
         raise (Conceval.Abort
@@ -135,8 +141,9 @@ module TestArch(LocalArch: Arch.ARCH) = struct
   let handle_frame_pair a b =
     match a, b with
     | `std_frame from_frame, `std_frame to_frame ->
-      Log.log ("addr: " ^
-               (Int64.to_string from_frame.Frame_piqi.Std_frame.address));
+      Log.set_last_addr from_frame.Frame_piqi.Std_frame.address;
+      Log.warning ("addr: " ^
+                   (Int64.to_string from_frame.Frame_piqi.Std_frame.address));
       (* First, set the state. *)
       List.iter from_frame.Frame_piqi.Std_frame.operand_pre_list
         ~f:(fun operand ->
