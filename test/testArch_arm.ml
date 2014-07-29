@@ -10,7 +10,7 @@ open Test
 (* FIXME End architecture specific code *)
 
 let tests =
-  "Arch_i386" >:::
+  "Arch_arm" >:::
   [
     "Loop through all traces" >:: (fun () ->
         Array.iter (Sys.readdir trace_dir) ~f:(fun filename ->
