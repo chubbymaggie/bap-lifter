@@ -1,5 +1,26 @@
 open Core_kernel.Std
 
+module Config = struct
+  let trace : string option ref = ref None
+  let frame_start : int option ref = ref None
+  let frame_end : int option ref = ref None
+  let dump_asm = ref false
+  let dump_stmts = ref false
+  (* TODO: dump expressions twice each, on entry and exit. *)
+  let dump_exps = ref false
+  let show_warnings = ref false
+  let arg_specs = [
+    "--trace", Arg.String (fun x -> trace := Some x),
+    "file run a single trace (default is to run all)";
+    "--range", Arg.Tuple [Arg.Int (fun x -> frame_start := Some x);
+                          Arg.Int (fun x -> frame_end := Some x)],
+    (* Pardon my alignment. *)
+    "a \b\b\b\b\b\bz     only run frames 'a' to 'z' inclusive";
+    "--dump-asm", Arg.Set dump_asm, " dump assembly";
+    "--dump-stmts", Arg.Set dump_stmts, " dump BIL stmts";
+  ]
+end
+
 module TestArch(LocalArch: Arch.ARCH) = struct
 
   (* Configuration derived from LocalArch *)
@@ -19,12 +40,11 @@ module TestArch(LocalArch: Arch.ARCH) = struct
 
   (* Helper functions *)
 
-  module Log = struct
-    let show_warnings = ref false
 
-    let frame_num = ref 0
+  module Log = struct
+    let frame_num = ref 1
     let reset_frame_num () =
-      frame_num := 0
+      frame_num := 1
     let incr_frame_num () =
       frame_num := !frame_num + 1
 
@@ -47,8 +67,9 @@ module TestArch(LocalArch: Arch.ARCH) = struct
           (100.0 *. (Int.to_float !good_data) /. (Int.to_float !all_data))
 
     let warning s =
-      if !show_warnings
-      then Printf.printf "Warning (#%d:%s): %s\n" !frame_num (Int64.to_string !last_addr) s
+      if !Config.show_warnings
+      then Printf.printf "Warning (#%d:%s): %s\n" !frame_num
+          (Int64.to_string !last_addr) s
       else ()
 
     let log s =
@@ -74,10 +95,11 @@ module TestArch(LocalArch: Arch.ARCH) = struct
     * set that byte of memory in the global state. *)
   let set_mem addr value =
     let addr = Conceval.BV (Bitvector.lit64 addr mem_index_width) in
-    let value = Conceval.BV (Bitvector.of_bytes (String.to_list value)) in
+    let value = Bitvector.of_bytes (String.to_list value) in
     let prev_mem = Conceval.State.peek_exn LocalArch.mem !global_state in
     let mem = Conceval.Memory.store
-        prev_mem addr value Bil.LittleEndian (Type.Reg 8) in
+        prev_mem addr (Conceval.BV value) Bil.LittleEndian
+        (Type.Reg (Bitvector.width_of value)) in
     global_state := Conceval.State.move
         LocalArch.mem mem !global_state
 
@@ -112,7 +134,7 @@ module TestArch(LocalArch: Arch.ARCH) = struct
     match Conceval.State.peek LocalArch.mem !global_state with
     | Some (Conceval.Mem mem) ->
       (match Conceval.Memory.load (Conceval.Mem mem) addr
-               Bil.LittleEndian (Type.Reg 8) with
+               Bil.LittleEndian (Type.Reg (Bitvector.width_of trace_value)) with
       | Some (Conceval.BV value) ->
         if (Bitvector.bool_of (Bitvector.eq value trace_value))
         then Log.incr_good ()
@@ -159,6 +181,12 @@ module TestArch(LocalArch: Arch.ARCH) = struct
       let bytes = from_frame.Frame_piqi.Std_frame.rawbytes in
       (* TODO: Which parts of this are lifter-dependent?
        * make sure this part is happy with ARM and x86(-64). *)
+      let hex_of s = String.concat
+          (List.map ~f:(fun c -> Printf.sprintf "%02x" (Char.to_int c))
+             (String.to_list s)) in
+      if !Config.dump_asm
+      then Log.log (Printf.sprintf "0x%s" (hex_of bytes))
+      else ();
       let next_cpu_state, bil, fallthrough_addr =
         LocalArch.disasm !cpu_state
           (fun i -> String.get bytes
@@ -166,8 +194,10 @@ module TestArch(LocalArch: Arch.ARCH) = struct
                                  from_frame.Frame_piqi.Std_frame.address)))
           (Bitvector.lit64 from_frame.Frame_piqi.Std_frame.address
              mem_index_width) in
-      (* List.iter bil ~f:(fun instr -> Log.log ("\t" ^ (Pp.string_of_bil instr))); *)
       (* Step through the BIL. *)
+      if !Config.dump_stmts
+      then List.iter bil ~f:(fun instr -> Log.log ("\t" ^ (Pp.string_of_bil instr)))
+      else ();
       let state, next = Conceval.eval_asm !global_state bil in
       cpu_state := next_cpu_state;
       global_state := Conceval.State.move LocalArch.ip
@@ -212,17 +242,24 @@ module TestArch(LocalArch: Arch.ARCH) = struct
     initialize_state ();
 
     let reader = new Trace_container.reader path in
-    (* Log.frame_num := 104080;
-       reader#seek 104080L; *)
+    (* If given a frame range (inclusive), only test those frames. *)
+    let condition = (
+      match !Config.frame_start, !Config.frame_end with
+      | Some a, Some z ->
+        (* reader#seek seems to treat seek to 0 and 1 identically,
+           so to avoid confusion we must use 1-indexing. *)
+        let a = if a < 1 then 1 else a in
+        Log.frame_num := a;
+        reader#seek (Int64.of_int_exn a);
+        (fun () -> not reader#end_of_trace && !Log.frame_num <= z)
+      | (_, _) -> (fun () -> not reader#end_of_trace)) in
     let a = ref reader#get_frame in
     let b = ref reader#get_frame in
-    while (* !Log.frame_num < 104100 *) not reader#end_of_trace do
+    while condition () do
       (* Any exception while stepping should be logged;
        * nothing that comes up at this time should halt testing. *)
       (try
-         (* if !Log.frame_num > 104080 && !Log.frame_num < 104100 *)
-         (* then *) handle_frame_pair !a !b
-       (* else () *)
+         handle_frame_pair !a !b
        with 
        | Conceval.Abort "Aborting with Special 'int 0x80'" 
        | Conceval.Abort "Aborting with Special 'syscall'" ->
@@ -235,7 +272,16 @@ module TestArch(LocalArch: Arch.ARCH) = struct
       a := !b;
       b := reader#get_frame;
       Log.incr_frame_num ();
-      (* Log.pp_results (); *)
     done
+
+  let handle_traces trace_dir =
+    Array.iter (Sys.readdir trace_dir) ~f:(fun filename ->
+        if Some filename = !Config.trace ||
+           (!Config.trace = None && String.is_suffix filename ~suffix:".trace")
+        then (Log.log (Printf.sprintf "Checking file %s" filename);
+              handle_trace (trace_dir ^ filename))
+        else Log.warning (Printf.sprintf "Ignoring file %s" filename)
+      );
+    Log.pp_results ()
 
 end
