@@ -377,10 +377,10 @@ module M = struct
      **)
     let address =
       match mode, operation, size, dst1 with
-      | PreIndex,  Ld, W, d when d = R.pc -> Var o_base
-      | PostIndex, Ld, W, d when d = R.pc -> Bop.(Var o_base + Var o_offset)
-      | PreIndex,  _,  _, _               -> Var base
-      | _                                 -> Bop.(Var base + offset)
+      | PostIndex,  Ld, W, d when d = R.pc  -> Var o_base
+      | PreIndex, Ld, W, d when d = R.pc    -> Bop.(Var o_base + Var o_offset)
+      | PostIndex,  _,  _, _                -> Var base
+      | PreIndex, _, _, _ | Offset, _, _, _ -> Bop.(Var base + offset)
     in
     (* Create temps for original if this is a jump *)
     let pre_write_back =
