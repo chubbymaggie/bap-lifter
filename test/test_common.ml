@@ -279,7 +279,12 @@ module TestArch(LocalArch: Arch.ARCH) = struct
         if Some filename = !Config.trace ||
            (!Config.trace = None && String.is_suffix filename ~suffix:".trace")
         then (Log.log (Printf.sprintf "Checking file %s" filename);
-              handle_trace (trace_dir ^ filename))
+              (try handle_trace (trace_dir ^ filename)
+               with exn ->
+                 let trace = Exn.backtrace () in
+                 (Log.log ("Error: While reading trace: " ^
+                           (Exn.to_string exn)); print_endline trace)
+              ))
         else Log.warning (Printf.sprintf "Ignoring file %s" filename)
       );
     Log.pp_results ()
