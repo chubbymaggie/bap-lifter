@@ -2008,7 +2008,8 @@ let bil_of_mcinst (mcinst : McInst.t) (addr : Z.t) : stmt list =
     exec insns cond
 
   | McSTMDB_UPD, base :: _unknown :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DB M.Update M.St in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DB M.Update M.St in
     exec insns cond
 
   (** Branching instructions *)
