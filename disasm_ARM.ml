@@ -806,7 +806,7 @@ module Data = struct
   ]
 
   let set_vnzf_add s1 s2 r t =
-    Move (R.vf, Cast (CAST_HIGH, Reg 1, Bop.((s1 = s2) land (s1 lxor r)))) ::
+    Move (R.vf, Cast (CAST_HIGH, Reg 1, Bop.((lnot (s1 lxor s2)) land (s1 lxor r)))) ::
     set_nzf r t
 
   let set_flags_add s1 s2 r t =
@@ -814,7 +814,8 @@ module Data = struct
     set_vnzf_add s1 s2 r t
 
   let set_flags_sub s1 s2 r t =
-    set_flags_add s1 Bop.(lnot (s2 + Int (rlit 1 t))) r t
+    Move (R.cf, Bop.(s2 <= s1)) ::
+    set_vnzf_add s1 Bop.(lnot (s2 + Int (rlit 1 t))) r t
 
   let set_flags_adc s1 s2 r t =
     (* Computes the carry flag by performing the addition *)
