@@ -2,7 +2,7 @@ BUILDFLAGS=-cflags -principal,-strict-sequence,-warn-error,+a,-w,+a-4-44
 OCB=ocamlbuild
 OCBF=
 OCF=ocamlfind
-OCI=ocp-indent
+OCI=cat
 LLVM_TREE=
 LLVM_MODE=Debug+Asserts
 
@@ -76,7 +76,7 @@ SANDBOX_FILTER=$(foreach dir,$(SANDBOX_DEPS),-path ./$(dir) -prune -o)
 .PHONY: check
 check: ocp-indent-check
 ocp-indent-check:
-	find . $(SANDBOX_FILTER) -name "*.ml" -print0 | xargs -n 1 -0 -Imlfile bash -c "$(OCI) mlfile | diff - mlfile"
+	find . $(SANDBOX_FILTER) -name "*.ml" -print0 | grep -vz setup.ml | grep -vz myocamlbuild.ml | xargs -0 -n 1 -Imlfile bash -c "$(OCI) mlfile | diff - mlfile"
 
 .PHONY: ocp-indent-auto
 ocp-indent-auto:

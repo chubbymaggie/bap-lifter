@@ -187,7 +187,7 @@ module TestArch(LocalArch: Arch.ARCH) = struct
       if !Config.dump_asm
       then Log.log (Printf.sprintf "0x%s" (hex_of bytes))
       else ();
-      let next_cpu_state, bil, fallthrough_addr =
+      let next_cpu_state, bil, fallthrough_addr, _ =
         LocalArch.disasm !cpu_state
           (fun i -> String.get bytes
               Int64.(to_int_exn ((Z.to_int64 (Bitvector.to_zarith i)) -

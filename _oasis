@@ -29,8 +29,6 @@ Test "main"
 Executable "toil"
   Path:           .
   MainIs: toil.ml
-  Install: false
-  Build$: flag(tests)
   Buildtools: ocamlbuild
   BuildDepends: bap-types, bap-lifter
   CompiledObject: native

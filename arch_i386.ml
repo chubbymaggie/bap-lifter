@@ -86,7 +86,7 @@ struct
   let regs = regs_x86
   let disasm m g a =
     let stmts, addr = Disasm_i386.disasm_instr m (fun x -> g (Bitvector.litz x 32)) (Bitvector.to_zarith a) in
-    (m, stmts, (Bitvector.litz addr 32))
+    (m, stmts, (Bitvector.litz addr 32), None)
 end
 
 module X86_64 : ARCH =
@@ -102,5 +102,5 @@ struct
   let regs = regs_x86_64
   let disasm m g a =
     let stmts, addr = Disasm_i386.disasm_instr m (fun x -> g (Bitvector.litz x 64)) (Bitvector.to_zarith a) in
-    (m, stmts, (Bitvector.litz addr 64))
+    (m, stmts, (Bitvector.litz addr 64), None)
 end

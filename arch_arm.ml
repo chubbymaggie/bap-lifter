@@ -13,6 +13,6 @@ struct
   let state_with_addr m _ = m
   let regs = R.regs
   let disasm m g a =
-    let _, stmts, addr = Disasm_ARM.disasm_instr (fun x -> g (Bitvector.litz x 32)) (Bitvector.to_zarith a) in
-    (m, stmts, (Bitvector.litz addr 32))
+    let asm, stmts, addr = Disasm_ARM.disasm_instr (fun x -> g (Bitvector.litz x 32)) (Bitvector.to_zarith a) in
+    (m, stmts, (Bitvector.litz addr 32), Some asm)
 end
