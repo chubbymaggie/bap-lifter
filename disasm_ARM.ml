@@ -334,12 +334,12 @@ module Helper = struct
       | McCondPL -> Bop.(n = f)
       | McCondVS -> Bop.(v = t)
       | McCondVC -> Bop.(v = f)
-      | McCondHI -> Bop.(c = t land z = f)
-      | McCondLS -> Bop.(c = f lor  z = t)
+      | McCondHI -> Bop.((c = t) land (z = f))
+      | McCondLS -> Bop.((c = f) lor  (z = t))
       | McCondGE -> Bop.(n =  v)
       | McCondLT -> Bop.(n <> v)
-      | McCondGT -> Bop.(z = f land n =  v)
-      | McCondLE -> Bop.(z = t lor  n <> v)
+      | McCondGT -> Bop.((z = f) land (n =  v))
+      | McCondLE -> Bop.((z = t) lor  (n <> v))
       | McCondAL -> t
     in
     (* We shortcut if the condition = all *)
