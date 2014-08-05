@@ -2006,7 +2006,7 @@ let bil_of_mcinst (mcinst : McInst.t) (addr : Z.t) : stmt list =
     exec insns cond
 
   | McLDMDB_UPD, base :: _unknown :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DB M.Update M.Ld in
+    let insns = MS.access_m_wrapper (List.rev dest_list) base M.DB M.Update M.Ld in
     exec insns cond
 
   | McSTMDB, base :: cond :: _wr_flag :: dest_list ->
