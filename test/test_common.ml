@@ -262,7 +262,8 @@ module TestArch(LocalArch: Arch.ARCH) = struct
          handle_frame_pair !a !b
        with 
        | Conceval.Abort "Aborting with Special 'int 0x80'" 
-       | Conceval.Abort "Aborting with Special 'syscall'" ->
+       | Conceval.Abort "Aborting with Special 'syscall'"
+       | Conceval.Abort "Aborting with Special 'svc 0x0'" ->
          initialize_state ();
          Log.warning "System call; dropping state."
        | exn ->

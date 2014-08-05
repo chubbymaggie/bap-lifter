@@ -1136,8 +1136,7 @@ end
 
 (* TODO: expose organization through better commenting *)
 (** Obtain BIL from an McInst *)
-let bil_of_mcinst (mcinst : McInst.t) (addr : Z.t) : stmt list =
-  let raw_bytes = McInst.(mcinst.raw_bytes) in
+let bil_of_mcinst (mcinst : McInst.t) (addr : Z.t) (raw_bytes : string) : stmt list =
   match McInst.(mcinst.mcopcode, mcinst.mcoperands) with
 
   | McMOVi, [dest; src; cond; _; wflag]
@@ -2115,7 +2114,7 @@ let disasm_instr (byte_at_offset : Z.t -> char) (addr : Z.t)
     if size = 0 then            (* 0 indicates an invalid mcinst *)
       "", []
     else
-      McInst.(mcinst.assembly), bil_of_mcinst mcinst addr
+      McInst.(mcinst.assembly), bil_of_mcinst mcinst addr (String.prefix str size)
   in
   let inc = Z.of_int size in
   (* 4.01 complains about ~$size or even substitute rhs of inc into below *)
