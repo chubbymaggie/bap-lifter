@@ -1,7 +1,7 @@
 open OUnit
 open Test_common
 
-let trace_dir = "traces/x86_64/"
+let trace_dir = "traces/traces/x86_64/"
 
 (* FIXME Start architecture specific code *)
 module Test = TestArch(Arch_i386.X86_64)
