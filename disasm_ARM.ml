@@ -1969,19 +1969,23 @@ let bil_of_mcinst (mcinst : McInst.t) (addr : Z.t) (raw_bytes : string) : stmt l
     exec insns cond
 
   | McLDMDA, base :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DA M.NoUpdate M.Ld in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DA M.NoUpdate M.Ld in
     exec insns cond
 
   | McLDMDA_UPD, base :: _unknown :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DA M.Update M.Ld in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DA M.Update M.Ld in
     exec insns cond
 
   | McSTMDA, base :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DA M.NoUpdate M.St in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DA M.NoUpdate M.St in
     exec insns cond
 
   | McSTMDA_UPD, base :: _unknown :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DA M.Update M.St in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DA M.Update M.St in
     exec insns cond
 
   | McLDMIB, base :: cond :: _wr_flag :: dest_list ->
@@ -2001,15 +2005,18 @@ let bil_of_mcinst (mcinst : McInst.t) (addr : Z.t) (raw_bytes : string) : stmt l
     exec insns cond
 
   | McLDMDB, base :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DB M.NoUpdate M.Ld in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DB M.NoUpdate M.Ld in
     exec insns cond
 
   | McLDMDB_UPD, base :: _unknown :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper (List.rev dest_list) base M.DB M.Update M.Ld in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DB M.Update M.Ld in
     exec insns cond
 
   | McSTMDB, base :: cond :: _wr_flag :: dest_list ->
-    let insns = MS.access_m_wrapper dest_list base M.DB M.NoUpdate M.St in
+    let insns = MS.access_m_wrapper (List.rev dest_list)
+        base M.DB M.NoUpdate M.St in
     exec insns cond
 
   | McSTMDB_UPD, base :: _unknown :: cond :: _wr_flag :: dest_list ->
