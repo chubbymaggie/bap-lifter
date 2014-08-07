@@ -521,8 +521,8 @@ module M = struct
                            LittleEndian, Reg 32))
     in
     Move (o_base, Var base) ::
-    writeback @
-    List.mapi ~f:create_access dest_list
+    List.mapi ~f:create_access dest_list @
+    writeback
 
 end
 
@@ -560,7 +560,9 @@ module Shift = struct
       shifted, carry
     | LSL ->
       let shifted = Bop.(src lsl shift) in
-      let carry = nth_bit Bop.(bits_e - shift) src in
+      let carry = Ite (Bop.(shift <> Int (B.lit 0 bits)),
+                       nth_bit Bop.(bits_e - shift) src,
+                       Var R.cf) in
       shifted, carry
     | LSR ->
       let shifted = Bop.(src lsr shift) in
