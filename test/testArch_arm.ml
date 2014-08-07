@@ -12,6 +12,9 @@ let tests =
   "Arch_arm" >:::
   [
     "Loop through all traces" >:: (fun () ->
-        handle_traces trace_dir
+        match !Config.arch with
+        | None | Some "arm" ->
+          handle_traces trace_dir
+        | _ -> ()
       )
   ]

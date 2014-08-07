@@ -12,6 +12,9 @@ let tests =
   "Arch_i386" >:::
   [
     "Loop through all traces" >:: (fun () ->
-        handle_traces trace_dir
+        match !Config.arch with
+        | None | Some "i386" | Some "x86" | Some "x86_32" ->
+          handle_traces trace_dir
+        | _ -> ()
       )
   ]

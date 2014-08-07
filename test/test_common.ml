@@ -4,19 +4,22 @@ module Config = struct
   let trace : string option ref = ref None
   let frame_start : int option ref = ref None
   let frame_end : int option ref = ref None
-  let dump_asm = ref false
+  let dump_hex = ref false
   let dump_stmts = ref false
   (* TODO: dump expressions twice each, on entry and exit. *)
   let dump_exps = ref false
   let show_warnings = ref false
+  let arch = ref None (* e.g. run all *)
   let arg_specs = [
     "--trace", Arg.String (fun x -> trace := Some x),
     "file run a single trace (default is to run all)";
+    "--arch", Arg.String (fun x -> arch := Some x),
+    "arch run only given arch (default is to run all)";
     "--range", Arg.Tuple [Arg.Int (fun x -> frame_start := Some x);
                           Arg.Int (fun x -> frame_end := Some x)],
     (* Pardon my alignment. *)
     "a \b\b\b\b\b\bz     only run frames 'a' to 'z' inclusive";
-    "--dump-asm", Arg.Set dump_asm, " dump assembly";
+    "--dump-hex", Arg.Set dump_hex, " dump instructions as hex";
     "--dump-stmts", Arg.Set dump_stmts, " dump BIL stmts";
   ]
 end
@@ -184,7 +187,7 @@ module TestArch(LocalArch: Arch.ARCH) = struct
       let hex_of s = String.concat
           (List.map ~f:(fun c -> Printf.sprintf "%02x" (Char.to_int c))
              (String.to_list s)) in
-      if !Config.dump_asm
+      if !Config.dump_hex
       then Log.log (Printf.sprintf "0x%s" (hex_of bytes))
       else ();
       let next_cpu_state, bil, fallthrough_addr, _ =
