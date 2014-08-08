@@ -9,6 +9,7 @@ module Config = struct
   (* TODO: dump expressions twice each, on entry and exit. *)
   let dump_exps = ref false
   let show_warnings = ref false
+  let summary : string option ref = ref None
   let arch = ref None (* e.g. run all *)
   let arg_specs = [
     "--trace", Arg.String (fun x -> trace := Some x),
@@ -21,6 +22,7 @@ module Config = struct
     "a \b\b\b\b\b\bz     only run frames 'a' to 'z' inclusive";
     "--dump-hex", Arg.Set dump_hex, " dump instructions as hex";
     "--dump-stmts", Arg.Set dump_stmts, " dump BIL stmts";
+    "--summary", Arg.String (fun x -> summary := Some x), "file write summary to file";
   ]
 end
 
@@ -32,7 +34,7 @@ module TestArch(LocalArch: Arch.ARCH) = struct
   (* State derived from LocalArch, Conceval *)
   let global_state = ref Conceval.State.empty
   let cpu_state = ref LocalArch.init_state
-  let initialize_state () = 
+  let initialize_state () =
     global_state := Conceval.State.move LocalArch.mem
         (Conceval.Mem Conceval.Memory.empty)
         Conceval.State.empty;
@@ -43,6 +45,69 @@ module TestArch(LocalArch: Arch.ARCH) = struct
 
   (* Helper functions *)
 
+  module Summary = struct
+    let runtime = ref 0.0
+    let n_traces = ref 0
+    let n_instructions = ref 0
+    let n_unknown_instructions = ref 0
+    let n_wrong_instructions = ref 0
+    let n_exceptions = ref 0
+    let errors : string list ref = ref []
+    let incorrect : string list ref = ref []
+    let exceptions : string list ref = ref []
+    let lift_error = ref false
+    let discrepancy = ref false
+
+    let new_instr () = lift_error := false; discrepancy := false
+
+    let set x () =
+      x := true
+
+    let log f =
+      match !Config.summary with
+      | Some _ -> f ()
+      | None -> ()
+
+    let incr x () =
+      x := !x + 1
+
+    let prepend x elem () =
+      x := elem :: !x
+
+    let write_summary () =
+      Printf.fprintf (Out_channel.create "foo.out")
+        "General Run Stats:\n\
+         Total run time : %.2f seconds\n\
+         Number of traces : %d\n\
+         Total number of instructions: %d\n\
+         Total number of BAP unknown instructions : %d\n\
+         Percentage of BAP unknown instructions : %.2f%%\n\
+         Total number of wrong instructions : %d\n\
+         Percentage of wrong instructions : %.2f%%\n\
+         Exceptions raised : %d\n\
+         Errors and Unknowns:\n%s\n\
+         Instructions BAP Evaluation got Incorrect:\n%s\n\
+         Exceptions raised:\n%s\n"
+        !runtime
+        !n_traces
+        !n_instructions
+        !n_unknown_instructions
+        (100.0 *. (float !n_unknown_instructions) /. (float !n_instructions))
+        !n_wrong_instructions
+        (100.0 *. (float !n_wrong_instructions) /. (float !n_instructions))
+        !n_exceptions
+        (String.concat ~sep:"\n" !errors)
+        (* FIXME *)
+        (String.concat ~sep:"\n"
+           (List.map ~f:(fun (a, b) -> a ^ " : " ^ Int.to_string b)
+              (List.sort ~cmp:(fun (_, x) (_, y) -> Int.compare y x)
+                 (List.map ~f:(function (x::xs) -> x, (1 + List.length xs)
+                                      | _ -> "", 0)
+                     (List.group ~break:(<>)
+                        (List.sort ~cmp:String.compare !incorrect))))))
+        (String.concat ~sep:"\n" !exceptions)
+
+  end
 
   module Log = struct
     let frame_num = ref 1
@@ -119,7 +184,8 @@ module TestArch(LocalArch: Arch.ARCH) = struct
          then Log.incr_good ()
          else (Log.log (Printf.sprintf "discrepancy: %s expected %s not %s" name
                           (Bitvector.to_hex trace_value) (Bitvector.to_hex value));
-               Log.incr_bad ())
+               Log.incr_bad ();
+               Summary.log (Summary.set Summary.discrepancy))
        | Some (Conceval.Un (s, _)) ->
          Log.warning (Printf.sprintf "Value of %s was unknown: %s" name s);
          (* Log.incr_bad () *)
@@ -144,7 +210,8 @@ module TestArch(LocalArch: Arch.ARCH) = struct
         else (Log.log (Printf.sprintf "discrepancy: %s expected %s not %s"
                          (Bitvector.to_hex bare_addr)
                          (Bitvector.to_hex trace_value) (Bitvector.to_hex value));
-              Log.incr_bad ())
+              Log.incr_bad ();
+              Summary.log (Summary.set Summary.discrepancy))
       | Some (Conceval.Un (s, _)) ->
         Log.warning (Printf.sprintf "Value of %s was unknown: %s"
                        (Bitvector.to_hex bare_addr) s);
@@ -166,6 +233,8 @@ module TestArch(LocalArch: Arch.ARCH) = struct
   let handle_frame_pair a b =
     match a, b with
     | `std_frame from_frame, `std_frame to_frame ->
+      Summary.new_instr ();
+      Summary.log (Summary.incr Summary.n_instructions);
       Log.set_last_addr from_frame.Frame_piqi.Std_frame.address;
       Log.warning ("addr: " ^
                    (Int64.to_string from_frame.Frame_piqi.Std_frame.address));
@@ -191,12 +260,18 @@ module TestArch(LocalArch: Arch.ARCH) = struct
       then Log.log (Printf.sprintf "0x%s" (hex_of bytes))
       else ();
       let next_cpu_state, bil, fallthrough_addr, _ =
-        LocalArch.disasm !cpu_state
-          (fun i -> String.get bytes
-              Int64.(to_int_exn ((Z.to_int64 (Bitvector.to_zarith i)) -
-                                 from_frame.Frame_piqi.Std_frame.address)))
-          (Bitvector.lit64 from_frame.Frame_piqi.Std_frame.address
-             mem_index_width) in
+        (try
+           LocalArch.disasm !cpu_state
+             (fun i -> String.get bytes
+                 Int64.(to_int_exn ((Z.to_int64 (Bitvector.to_zarith i)) -
+                                    from_frame.Frame_piqi.Std_frame.address)))
+             (Bitvector.lit64 from_frame.Frame_piqi.Std_frame.address
+                mem_index_width)
+         with exn ->
+           Summary.log (Summary.incr Summary.n_unknown_instructions);
+           Summary.log (Summary.prepend Summary.errors (Exn.to_string exn));
+           Summary.log (Summary.set Summary.lift_error);
+           raise exn) in
       (* Step through the BIL. *)
       if !Config.dump_stmts
       then List.iter bil ~f:(fun instr -> Log.log ("\t" ^ (Pp.string_of_bil instr)))
@@ -228,8 +303,12 @@ module TestArch(LocalArch: Arch.ARCH) = struct
                 operand.Frame_piqi.Operand_info.value;
               set_register reg_info.Frame_piqi.Reg_operand.name
                 operand.Frame_piqi.Operand_info.value
-          )
-
+          );
+      Summary.log (fun () -> if !Summary.discrepancy
+                    then
+                      (Summary.incr Summary.n_wrong_instructions ();
+                       Summary.prepend Summary.incorrect ("0x" ^ (hex_of bytes)) ())
+                    else ())
     | _, _ -> initialize_state ();
       Log.warning "Frames are not both `std_frame."
 
@@ -263,15 +342,23 @@ module TestArch(LocalArch: Arch.ARCH) = struct
        * nothing that comes up at this time should halt testing. *)
       (try
          handle_frame_pair !a !b
-       with 
-       | Conceval.Abort "Aborting with Special 'int 0x80'" 
+       with
+       | Conceval.Abort "Aborting with Special 'int 0x80'"
        | Conceval.Abort "Aborting with Special 'syscall'"
        | Conceval.Abort "Aborting with Special 'svc 0x0'" ->
-         initialize_state ();
-         Log.warning "System call; dropping state."
+         (initialize_state ();
+          Log.warning "System call; dropping state.")
+       | Conceval.Abort x when
+           String.is_prefix x ~prefix:"Aborting with Special 'Unimplemented" ->
+         Summary.log (Summary.incr Summary.n_unknown_instructions);
+         Summary.log (Summary.prepend Summary.errors x)
        | exn ->
          (let trace = Exn.backtrace () in
-          Log.log ("Error: " ^ (Exn.to_string exn)); print_endline trace)
+          Log.log ("Error: " ^ (Exn.to_string exn) ^ "\n" ^ trace);
+          if !Summary.lift_error then () else
+            (Summary.log (Summary.incr Summary.n_exceptions);
+             Summary.log (Summary.prepend Summary.exceptions (Exn.to_string exn)))
+         )
       );
       a := !b;
       b := reader#get_frame;
@@ -279,10 +366,12 @@ module TestArch(LocalArch: Arch.ARCH) = struct
     done
 
   let handle_traces trace_dir =
+    let start_time = Sys.time() in
     Array.iter (Sys.readdir trace_dir) ~f:(fun filename ->
         if Some filename = !Config.trace ||
            (!Config.trace = None && String.is_suffix filename ~suffix:".trace")
         then (Log.log (Printf.sprintf "Checking file %s" filename);
+              Summary.log (Summary.incr Summary.n_traces);
               (try handle_trace (trace_dir ^ filename)
                with exn ->
                  let trace = Exn.backtrace () in
@@ -291,6 +380,9 @@ module TestArch(LocalArch: Arch.ARCH) = struct
               ))
         else Log.warning (Printf.sprintf "Ignoring file %s" filename)
       );
-    Log.pp_results ()
+    Log.pp_results ();
+    Summary.log (fun () ->
+        Summary.runtime := Sys.time() -. start_time;
+        Summary.write_summary ())
 
 end
