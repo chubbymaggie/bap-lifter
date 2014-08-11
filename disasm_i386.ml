@@ -1616,8 +1616,9 @@ module ToIR = struct
          * infer_ast, so I'm passing those in directly now.
          * Imo, this is a lot less dubious than the thingy above. *)
         let (index, index_width) = match t with
-          | Reg 64 -> (Extract (((i*8)+2), ((i*8)+0), order_e), 3) (* 3 bits *)
-          | Reg 128 | Reg 256 -> (Extract (((i*8)+3), ((i*8)+0), order_e), 4) (* 4 bits *)
+          | Reg 64 -> (Extract (((i*8)+2), ((i*8)+0), order_e), 64) (* 3 bits *)
+          | Reg 128 -> (Extract (((i*8)+3), ((i*8)+0), order_e), 128) (* 4 bits *)
+          | Reg 256 -> (Extract (((i*8)+3), ((i*8)+0), order_e), 256) (* 4 bits *)
           | _ -> disfailwith "invalid size for pshufb"
         in
         let index = Cast (CAST_UNSIGNED, t, index) in
@@ -1736,7 +1737,7 @@ module ToIR = struct
         (* For a 1-bit shift, the OF flag is set if a sign change occurred;
            otherwise, it is cleared. For shifts greater than 1 bit, the OF flag
            is undefined. *)
-        Move (oF, Bop.(ifzero of_e (Ite (Var origCOUNT = i32 1, new_of, unk_of))));
+        Move (oF, Bop.(ifzero of_e (Ite (Var origCOUNT = it 1 s', new_of, unk_of))));
         Move (sf, ifzero sf_e (compute_sf e_dst));
         Move (zf, ifzero zf_e (compute_zf s' e_dst));
         Move (pf, ifzero pf_e (compute_pf s e_dst));
