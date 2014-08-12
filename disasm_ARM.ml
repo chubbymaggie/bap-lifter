@@ -1013,6 +1013,7 @@ module Bit = struct
     let open Int64 in
     let magic1 = 0x1001001001001L in
     let magic2 = 0x84210842108421L in
+    let (%) = rem in
     (v land 0xfffL   )        * magic1 land magic2 % 0x1fL +
     (v land 0xfff000L) lsr 12 * magic1 land magic2 % 0x1fL +
     (v               ) lsr 24 * magic1 land magic2 % 0x1fL |>
