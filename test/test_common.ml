@@ -75,37 +75,40 @@ module TestArch(LocalArch: Arch.ARCH) = struct
       x := elem :: !x
 
     let write_summary () =
-      Printf.fprintf (Out_channel.create "foo.out")
-        "General Run Stats:\n\
-         Total run time : %.2f seconds\n\
-         Number of traces : %d\n\
-         Total number of instructions: %d\n\
-         Total number of BAP unknown instructions : %d\n\
-         Percentage of BAP unknown instructions : %.2f%%\n\
-         Total number of wrong instructions : %d\n\
-         Percentage of wrong instructions : %.2f%%\n\
-         Exceptions raised : %d\n\
-         Errors and Unknowns:\n%s\n\
-         Instructions BAP Evaluation got Incorrect:\n%s\n\
-         Exceptions raised:\n%s\n"
-        !runtime
-        !n_traces
-        !n_instructions
-        !n_unknown_instructions
-        (100.0 *. (float !n_unknown_instructions) /. (float !n_instructions))
-        !n_wrong_instructions
-        (100.0 *. (float !n_wrong_instructions) /. (float !n_instructions))
-        !n_exceptions
-        (String.concat ~sep:"\n" !errors)
-        (* FIXME *)
-        (String.concat ~sep:"\n"
-           (List.map ~f:(fun (a, b) -> a ^ " : " ^ Int.to_string b)
-              (List.sort ~cmp:(fun (_, x) (_, y) -> Int.compare y x)
-                 (List.map ~f:(function (x::xs) -> x, (1 + List.length xs)
-                                      | _ -> "", 0)
-                     (List.group ~break:(<>)
-                        (List.sort ~cmp:String.compare !incorrect))))))
-        (String.concat ~sep:"\n" !exceptions)
+      match !Config.summary with
+      | Some filename ->
+        Printf.fprintf (Out_channel.create filename)
+          "General Run Stats:\n\
+           Total run time : %.2f seconds\n\
+           Number of traces : %d\n\
+           Total number of instructions: %d\n\
+           Total number of BAP unknown instructions : %d\n\
+           Percentage of BAP unknown instructions : %.2f%%\n\
+           Total number of wrong instructions : %d\n\
+           Percentage of wrong instructions : %.2f%%\n\
+           Exceptions raised : %d\n\
+           Errors and Unknowns:\n%s\n\
+           Instructions BAP Evaluation got Incorrect:\n%s\n\
+           Exceptions raised:\n%s\n"
+          !runtime
+          !n_traces
+          !n_instructions
+          !n_unknown_instructions
+          (100.0 *. (float !n_unknown_instructions) /. (float !n_instructions))
+          !n_wrong_instructions
+          (100.0 *. (float !n_wrong_instructions) /. (float !n_instructions))
+          !n_exceptions
+          (String.concat ~sep:"\n" !errors)
+          (* FIXME *)
+          (String.concat ~sep:"\n"
+             (List.map ~f:(fun (a, b) -> a ^ " : " ^ Int.to_string b)
+                (List.sort ~cmp:(fun (_, x) (_, y) -> Int.compare y x)
+                   (List.map ~f:(function (x::xs) -> x, (1 + List.length xs)
+                                        | _ -> "", 0)
+                       (List.group ~break:(<>)
+                          (List.sort ~cmp:String.compare !incorrect))))))
+          (String.concat ~sep:"\n" !exceptions)
+      | None -> ()
 
   end
 
