@@ -5,6 +5,7 @@ let usage = "converts ASM (from stdin) to BIL."
 let address = ref (Int64.of_int 0)
 let arch = ref None
 let dump_asm = ref false
+let dump_fallthrough = ref false
 
 let text_format stmts =
   String.concat ~sep:"\n" (List.map stmts ~f:Pp.string_of_bil)
@@ -21,6 +22,7 @@ let arg_specs = [
       | _ -> raise (Arg.Bad "Invalid architecture: try x86, x86_64, arm")
     ), "one of x86, x86_64, arm";
   "--dump-asm", Arg.Set dump_asm, "show assembly (if available)";
+  "--dump-fallthrough", Arg.Set dump_fallthrough, "show fallthrough address";
   "--format", Arg.String (function
       | "json"  -> formatter := Bil_piqi.json_of_stmts
       | "text"  -> formatter := text_format
@@ -36,16 +38,18 @@ let () = Arg.parse arg_specs (fun _ -> ()) usage;
   | Some arch -> (
       let module LocalArch = (val arch : Arch.ARCH) in
       let bytes = In_channel.(input_all stdin) in
-      let _, bil, _, asm =
+      let _, bil, ft, asm =
         LocalArch.disasm LocalArch.init_state
           (fun i -> String.get bytes
               Int64.(to_int_exn ((Z.to_int64 (Bitvector.to_zarith i)) -
                                  !address)))
           (Bitvector.lit64 !address
              (Conceval.width_of LocalArch.mem_index_type)) in
-      print_string (!formatter bil);
-      if !dump_asm then match asm with
-        | Some asm -> print_endline asm
-        | None -> print_endline "Assembly not available for this architecture."
-      else ()
+      print_endline (!formatter bil);
+      if !dump_asm then
+        (match asm with
+           | Some asm -> print_endline asm
+           | None -> print_endline "Assembly not available for this architecture.");
+      if !dump_fallthrough then
+        print_endline (Bitvector.to_string ft)
     )
