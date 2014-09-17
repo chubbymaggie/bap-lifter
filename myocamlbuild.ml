@@ -1,7 +1,7 @@
 (* OASIS_START *)
-(* DO NOT EDIT (digest: 0374db1671e0c5c99f83266463c6bfab) *)
+(* DO NOT EDIT (digest: ff10b22fb9e3f9e493ab4432d6da5f0b) *)
 module OASISGettext = struct
-(* # 22 "src/oasis/OASISGettext.ml" *)
+(* # 22 "/var/tmp/portage/dev-ml/oasis-0.4.4/work/oasis-0.4.4/src/oasis/OASISGettext.ml" *)
 
 
   let ns_ str =
@@ -30,7 +30,7 @@ module OASISGettext = struct
 end
 
 module OASISExpr = struct
-(* # 22 "src/oasis/OASISExpr.ml" *)
+(* # 22 "/var/tmp/portage/dev-ml/oasis-0.4.4/work/oasis-0.4.4/src/oasis/OASISExpr.ml" *)
 
 
 
@@ -39,10 +39,10 @@ module OASISExpr = struct
   open OASISGettext
 
 
-  type test = string
+  type test = string 
 
 
-  type flag = string
+  type flag = string 
 
 
   type t =
@@ -52,10 +52,10 @@ module OASISExpr = struct
     | EOr of t * t
     | EFlag of flag
     | ETest of test * string
+    
 
 
-
-  type 'a choices = (t * 'a) list
+  type 'a choices = (t * 'a) list 
 
 
   let eval var_get t =
@@ -131,7 +131,7 @@ end
 
 # 132 "myocamlbuild.ml"
 module BaseEnvLight = struct
-(* # 22 "src/base/BaseEnvLight.ml" *)
+(* # 22 "/var/tmp/portage/dev-ml/oasis-0.4.4/work/oasis-0.4.4/src/base/BaseEnvLight.ml" *)
 
 
   module MapString = Map.Make(String)
@@ -236,7 +236,7 @@ end
 
 # 237 "myocamlbuild.ml"
 module MyOCamlbuildFindlib = struct
-(* # 22 "src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml" *)
+(* # 22 "/var/tmp/portage/dev-ml/oasis-0.4.4/work/oasis-0.4.4/src/plugins/ocamlbuild/MyOCamlbuildFindlib.ml" *)
 
 
   (** OCamlbuild extension, copied from
@@ -415,7 +415,7 @@ module MyOCamlbuildFindlib = struct
 end
 
 module MyOCamlbuildBase = struct
-(* # 22 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
+(* # 22 "/var/tmp/portage/dev-ml/oasis-0.4.4/work/oasis-0.4.4/src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
 
 
   (** Base functions for writing myocamlbuild.ml
@@ -430,13 +430,13 @@ module MyOCamlbuildBase = struct
   module OC = Ocamlbuild_pack.Ocaml_compiler
 
 
-  type dir = string
-  type file = string
-  type name = string
-  type tag = string
+  type dir = string 
+  type file = string 
+  type name = string 
+  type tag = string 
 
 
-(* # 62 "src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
+(* # 62 "/var/tmp/portage/dev-ml/oasis-0.4.4/work/oasis-0.4.4/src/plugins/ocamlbuild/MyOCamlbuildBase.ml" *)
 
 
   type t =
@@ -448,7 +448,7 @@ module MyOCamlbuildBase = struct
          * directory.
          *)
         includes:  (dir * dir list) list;
-      }
+      } 
 
 
   let env_filename =

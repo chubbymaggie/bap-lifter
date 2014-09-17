@@ -9,8 +9,8 @@ Plugins:     META (0.4), DevFiles (0.4)
 Library "bap-lifter"
   Path:            .
   BuildTools:      ocamlbuild
-  InternalModules: Arch_arm, Arch_i386
-  Modules:         Disasm_ARM, Disasm_i386
+  Modules:         Arch_arm, Arch_i386
+  InternalModules: Disasm_ARM, Disasm_i386
   BuildDepends:    bap-types, llvm-mc, core_kernel
   
 Executable "test"
@@ -27,8 +27,15 @@ Test "main"
   Command: $test
 
 Executable "toil"
-  Path:           .
+  Path: .
   MainIs: toil.ml
+  Buildtools: ocamlbuild
+  BuildDepends: bap-types, bap-lifter
+  CompiledObject: native
+
+Executable "bapd"
+  Path: .
+  MainIs: bapd.ml
   Buildtools: ocamlbuild
   BuildDepends: bap-types, bap-lifter
   CompiledObject: native
