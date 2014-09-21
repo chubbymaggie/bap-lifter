@@ -1,3 +1,9 @@
+bap-lifter (0.1~rc0-1ubuntu1) trusty; urgency=low
+
+  * Switch to trusty
+
+ -- Matthew Maurer <maurer@matthewmaurer.org>  Sun, 21 Sep 2014 18:03:05 -0400
+
 bap-lifter (0.1~rc0-1) unstable; urgency=low
 
   * Initial release
