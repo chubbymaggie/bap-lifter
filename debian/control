@@ -1,0 +1,48 @@
+Source: bap-lifter
+Priority: optional
+Maintainer: Matthew Maurer <maurer@matthewmaurer.org>
+Build-Depends:
+  debhelper (>= 9),
+  pkg-config,
+  ocaml-nox (>= 4.01),
+  camlp4,
+  ocaml-findlib (>= 1.4),
+  dh-ocaml (>= 0.9),
+  libbap-types-ocaml-dev,
+  libllvm-mc-ocaml-dev,
+  zlib1g-dev
+Standards-Version: 3.9.5
+Section: ocaml
+Homepage: https://github.com/BinaryAnalysisPlatform/bap-lifter
+
+Package: libbap-lifter-ocaml
+Architecture: any
+Depends:
+  ${ocaml:Depends},
+  ${shlibs:Depends},
+  ${misc:Depends}
+Provides: ${ocaml:Provides}
+Description: Core types used throughout bap
+ This package provides files needed to run other bap components
+
+Package: libbap-lifter-ocaml-dev
+Architecture: any
+Depends:
+  ${ocaml:Depends},
+  ${shlibs:Depends},
+  ${misc:Depends},
+  libbap-lifter-ocaml (= ${binary:Version})
+Provides: ${ocaml:Provides}
+Recommends: ocaml-findlib
+Description: Core types used throughout bap
+ This package provides files needed to build bap components or create new ones
+
+Package: toil
+Architecture: any
+Depends:
+  ${shlibs:Depends},
+  libbap-lifter-ocaml (= ${binary:Version})
+Provides: ${ocaml:Provides}
+Description: Tool for lifting binary code to BIL
+ Lifts a single instruction to BIL, potentially serializing it to one of
+ several different formats.

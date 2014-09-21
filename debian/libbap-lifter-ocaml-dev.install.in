@@ -1,0 +1,5 @@
+@OCamlStdlibDir@/bap-lifter/*.cmi
+@OCamlStdlibDir@/bap-lifter/*.ml*
+@OCamlStdlibDir@/bap-lifter/*.a
+OPT: @OCamlStdlibDir@/bap-lifter/*.cmx
+OPT: @OCamlStdlibDir@/bap-lifter/*.cmxa

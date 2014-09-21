@@ -1,0 +1,3 @@
+@OCamlStdlibDir@/bap-lifter/*.cma
+@OCamlStdlibDir@/bap-lifter/META
+DYN: @OCamlStdlibDir@/bap-lifter/*.cmxs
